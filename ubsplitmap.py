@@ -7,7 +7,7 @@ for split horizon DNS that would work in a dynamic fashion.
 
 from ConfigParser import SafeConfigParser
 from fnmatch import fnmatch
-import os
+import os , socket
 
 CONFIG_SEARCH = [
     '/etc/ub-split-map.ini' ,
@@ -91,10 +91,10 @@ def processRRSets(qstate , qname , ipMap):
     msg = DNSMessage(qstate.qinfo.qname_str , RR_TYPE_A , RR_CLASS_IN ,
         PKT_QR | PKT_RA)
     rep = qstate.return_msg.rep
-    for i in xrange(req.an_numrrsets):
+    for i in xrange(rep.an_numrrsets):
         if rep.rrsets[i].rk.type_str == 'A':
             # Only want the A records
-            data = rep.rrsets[i].entry.data.count
+            data = rep.rrsets[i].entry.data
             for j in xrange(data.count):
                 ip = unpackIP(data.rr_data[j])
                 if ip in ipMap:
@@ -133,6 +133,7 @@ def operate(mid , event , qstate , qdata):
         return True
 
     if event == MODULE_EVENT_MODDONE:
+        print 'GOT A MODDONE'
         if not qstate.return_msg or not qstate.return_msg.rep:
             qstate.ext_state[mid] = MODULE_FINISHED
             return True
@@ -143,6 +144,7 @@ def operate(mid , event , qstate , qdata):
             return True
         # If we get here, we are going to see if we have a match
         qn = qstate.qinfo.qname_str.rstrip('.')
+        print 'HAVE QNAME: %s' % qn
         match = conf.qnameMatch(qn)
         if not match:
             # We don't have to do anything more, set finished and return
@@ -150,7 +152,10 @@ def operate(mid , event , qstate , qdata):
             return True
         try:
             # Time to check the IPs that were returned
+            invalidateQueryInCache(qstate , qstate.return_msg.qinfo)
             processRRSets(qstate , qn , match)
+            storeQueryInCache(qstate , qstate.return_msg.qinfo ,
+                qstate.return_msg.rep , 0)
         except Exception , e:
             log_err('An error occurred during modification: %s' % e)
             qstate.ext_state[mid] = MODULE_ERROR
