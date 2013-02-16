@@ -6,6 +6,7 @@ for split horizon DNS that would work in a dynamic fashion.
 """
 
 from ConfigParser import SafeConfigParser
+from fnmatch import fnmatch
 import os
 
 CONFIG_SEARCH = [
@@ -21,13 +22,90 @@ if 'HOME' in os.environ:
         os.path.join(os.environ['HOME'] , '/unbound/ub-split-map.ini') ,
     ])
 
+CONFIG_SEARCH.append('/home/jay/sandbox/ub-split-map/ub-split-map.ini')
+
 class Globals(object):
     conf = None
 
+class MyConfigParser(SafeConfigParser):
+    """
+    Subclass to make some particular lookups easier
+    """
+    # This is a cached set of the domainSections
+    __domSections = None
+    # This is cached version of previously matched domains and their
+    # section names
+    prevMatches = {}
+
+    def getDomSections(self):
+        """
+        Returns a list of the of the domain sections and caches them in
+        the domSections class variable once found
+        """
+        if self.domSections is not None:
+            return self.__domSections
+        self.__domSections = set()
+        toSkip = set(['main' , 'maps'])
+        for s in self.sections():
+            if s not in toSkip:
+                self.__domSections.add(s)
+        return self.__domSections
+
+    def qnameMatch(self , qname):
+        """
+        Based on the qname, returns the dictionary of matches for a
+        particular query name
+
+        qname:str       The domain query name
+
+        returns:dict
+        """
+        if self.get('main' , 'scan_type') == 'all':
+            # Just return the maps section if we are scanning all
+            return dict(self.items('maps'))
+        # Check to see if this qname has matched previously
+        if qname in self.prevMatches:
+            return dict(self.items(self.prevMatches[qname]))
+        # Check the qname vs all the section headings
+        sects = self.getDomSections()
+        for s in sects:
+            if fnmatch(qname , s):
+                # Cache it and return the results
+                self.prevMatches[qname] = s
+                return dict(self.items(s))
+        return None
+
 def getConf():
-    conf = SafeConfigParser()
+    conf = MyConfigParser()
     conf.read(CONFIG_SEARCH)
     return conf
+
+def unpackIP(strIP):
+    """
+    Converts the packed wire IP to a dotted quad.  The first 2 bytes of the
+    string passed in are the short representing the length
+    """
+    return socket.inet_ntoa(strIP[2:])
+
+def processRRSets(qstate , qname , ipMap):
+    msg = DNSMessage(qstate.qinfo.qname_str , RR_TYPE_A , RR_CLASS_IN ,
+        PKT_QR | PKT_RA)
+    rep = qstate.return_msg.rep
+    for i in xrange(req.an_numrrsets):
+        if rep.rrsets[i].rk.type_str == 'A':
+            # Only want the A records
+            data = rep.rrsets[i].entry.data.count
+            for j in xrange(data.count):
+                ip = unpackIP(data.rr_data[j])
+                if ip in ipMap:
+                    # We have a match to replace
+                    msg.answer.append('%s %d IN A %s' % (qname , 
+                        data.rr_ttl[j] , ipMap[ip]))
+                else:
+                    msg.answer.append('%s %d IN A %s' % (qname ,
+                        data.rr_ttl[j]  , ip))
+    if not msg.set_return_msg(qstate):
+        raise ModuleError('Can\'t set the return message')                   
 
 #
 # Unbound hooks
@@ -58,6 +136,24 @@ def operate(mid , event , qstate , qdata):
         if not qstate.return_msg or not qstate.return_msg.rep:
             qstate.ext_state[mid] = MODULE_FINISHED
             return True
+        # Check to see that an A record was queried (all that is supported
+        # for now)
+        if qstate.qinfo.qtype_str != 'A':
+            qstate.ext_state[mid] = MODULE_FINISHED
+            return True
+        # If we get here, we are going to see if we have a match
         qn = qstate.qinfo.qname_str.rstrip('.')
-
+        match = conf.qnameMatch(qn)
+        if not match:
+            # We don't have to do anything more, set finished and return
+            qstate.ext_state[mid] = MODULE_FINISHED
+            return True
+        try:
+            # Time to check the IPs that were returned
+            processRRSets(qstate , qn , match)
+        except Exception , e:
+            log_err('An error occurred during modification: %s' % e)
+            qstate.ext_state[mid] = MODULE_ERROR
+            return False
+    qstate.ext_state[mid] = MODULE_FINISHED
     return True
