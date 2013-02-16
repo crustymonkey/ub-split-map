@@ -1,0 +1,25 @@
+from distutils.core import setup
+
+setup(name='ub-split-map' ,
+    version='0.1.0' ,
+    author='Jay Deiman' ,
+    author_email='admin@splitstreams.com' ,
+    url='http://stuffivelearned.org' ,
+    description='A python module for Unbound to dynamically map external ' \
+        'IPs to internal RFC 1918 addresses to avoid split-horizon DNS' ,
+    long_description='Full documentation is available at '
+        'http://stuffivelearned.org' ,
+    py_modules=['ubsplitmap'] ,
+    data_files=[ ('etc/unbound' , ['ub-split-map.ini.default']) ] ,
+    classifiers=[
+        'Development Status :: 2 - Pre-Alpha' ,
+        'Intended Audience :: Developers' ,
+        'Intended Audience :: Information Technology' ,
+        'Intended Audience :: System Administrators' ,
+        'License :: OSI Approved :: GNU General Public License v2 (GPLv2)' ,
+        'Natural Language :: English' ,
+        'Operating System :: OS Independent' ,
+        'Programming Language :: Python :: 2' ,
+        'Topic :: Internet :: Name Service (DNS)' ,
+    ]
+)
