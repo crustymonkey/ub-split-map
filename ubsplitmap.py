@@ -101,6 +101,7 @@ def processRRSets(qstate , qname , ipMap):
                     # We have a match to replace
                     msg.answer.append('%s %d IN A %s' % (qname , 
                         data.rr_ttl[j] , ipMap[ip]))
+                    modified = True
                 else:
                     msg.answer.append('%s %d IN A %s' % (qname ,
                         data.rr_ttl[j]  , ip))
@@ -133,7 +134,6 @@ def operate(mid , event , qstate , qdata):
         return True
 
     if event == MODULE_EVENT_MODDONE:
-        print 'GOT A MODDONE'
         if not qstate.return_msg or not qstate.return_msg.rep:
             qstate.ext_state[mid] = MODULE_FINISHED
             return True
@@ -144,14 +144,13 @@ def operate(mid , event , qstate , qdata):
             return True
         # If we get here, we are going to see if we have a match
         qn = qstate.qinfo.qname_str.rstrip('.')
-        print 'HAVE QNAME: %s' % qn
         match = conf.qnameMatch(qn)
         if not match:
             # We don't have to do anything more, set finished and return
             qstate.ext_state[mid] = MODULE_FINISHED
             return True
         try:
-            # Time to check the IPs that were returned
+            # Time to modify the IPs that were returned
             invalidateQueryInCache(qstate , qstate.return_msg.qinfo)
             processRRSets(qstate , qn , match)
             storeQueryInCache(qstate , qstate.return_msg.qinfo ,
