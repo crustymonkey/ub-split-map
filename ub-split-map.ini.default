@@ -1,3 +1,14 @@
+# This is the config file that will be consumed by the ubsplitmap.py module.
+# It is important to note that this file must be located in one of the 
+# following locations.  If it is not, unbound will fail to start!:
+#
+# /etc/ub-split-map.ini
+# /etc/unbound/ub-split-map.ini
+# /usr/local/etc/ub-split-map.ini
+# /usr/local/etc/unbound/ub-split-map.ini
+# $HOME/ub-split-map.ini
+# $HOME/unbound/ub-split-map.ini
+#
 [DEFAULT]
 # These are all the default definitions that will be used in other sections
 # unless they are overridden.  You should NOT change the values in this
