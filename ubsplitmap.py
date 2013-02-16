@@ -5,6 +5,11 @@ that will map external IPs to RFC-1918 IPs.  This would be a replacement
 for split horizon DNS that would work in a dynamic fashion.
 """
 
+from configparser import SafeConfigParser
+
+def getConf():
+    pass
+
 #
 # Unbound hooks
 #

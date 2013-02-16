@@ -1,0 +1,41 @@
+[DEFAULT]
+# These are all the default definitions that will be used in other sections
+# unless they are overridden.  You should NOT change the values in this
+# section!  Instead, make the changes in the appropriate sections to override
+# these
+
+# By default, all rrsets will be scanned for matching IP maps specified
+# in the [maps] section.  You can change the scan_type from "all" to 
+# "qnames" in the [main] section if you only want to scan certain 
+# domain name lookups for matching IPs
+scan_type = all
+
+[main]
+# These are all the server configuration options
+
+#scan_type = qnames
+
+[maps]
+# In this section, you want to define your IP mappings.  This is really
+# simple.  The external IP is the LHS and the internal IP is the RHS.
+# For example, if you wanted to map 1.2.3.4 to 192.168.0.10, you would
+# have a map like the following:
+#
+#1.2.3.4 = 192.168.0.10
+#
+# You can specify as many maps as you would like.
+# NOTE: If you set scan_type to "qnames", this section is IGNORED!
+
+# If you set scan_type to "qnames", you must set domain query names as 
+# the "entry point" for IP scanning.  You can use glob style matching
+# on the domain query names so *example.com would match "example.com" and
+# "www.example.com", but it would also match "monkeyexample.com".  Be
+# careful how you specify your domain matches.
+#
+# Under each domain matching section, you specify IP maps exactly as you
+# would in the [maps] section.  As mentioned previously, if you have the
+# scan_type set to "qnames", the [maps] section is completely ignored
+# 
+# Ex.:
+#[*example.com]
+#1.2.3.4 = 192.168.0.10
