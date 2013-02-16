@@ -42,7 +42,7 @@ class MyConfigParser(SafeConfigParser):
         Returns a list of the of the domain sections and caches them in
         the domSections class variable once found
         """
-        if self.domSections is not None:
+        if self.__domSections is not None:
             return self.__domSections
         self.__domSections = set()
         toSkip = set(['main' , 'maps'])
