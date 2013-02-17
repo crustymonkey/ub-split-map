@@ -55,4 +55,28 @@ following in the "server" section.
  This _can_ be run in a chroot, but I will leave that exercise to you...
 
 All you have to add to the unbound.conf file is the _module-config_ and
-create a python section.
+create a python section.  You need to put in the proper path for the
+*ubsplitmap.py* file depending on where it's installed (or where you've
+copied it to).
+
+    server:
+        module-config: "validator python iterator"
+    python:
+        python-script: "/usr/lib/python2.7/site-packages/ubsplitmap.py"
+
+That's all you need to add to the unbound.conf file.
+
+### Configuring ub-split-map ###
+There's not a whole lot you have to do here.  You just have to change the name
+of the ub-split-map.ini.default file to ub-split-map.ini and make sure
+that it's in one of the following locations:
+
+    /etc/ub-split-map.ini
+    /etc/unbound/ub-split-map.ini
+    /usr/local/etc/ub-split-map.ini
+    /usr/local/etc/unbound/ub-split-map.ini
+    $HOME/ub-split-map.ini
+    $HOME/unbound/ub-split-map.ini
+
+As far as configuring the ub-split-map.ini file goes, read the notes in
+the default file for more info on it's config.
