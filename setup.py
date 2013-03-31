@@ -1,14 +1,14 @@
 from distutils.core import setup
 
 setup(name='ub-split-map' ,
-    version='0.1.0' ,
+    version='0.1.1' ,
     author='Jay Deiman' ,
     author_email='admin@splitstreams.com' ,
     url='http://stuffivelearned.org' ,
     description='A python module for Unbound to dynamically map external ' \
         'IPs to internal RFC 1918 addresses to avoid split-horizon DNS' ,
-    long_description='Full documentation is available at '
-        'http://stuffivelearned.org' ,
+    long_description='Full documentation is available at ' \
+        'https://stuffivelearned.org/doku.php?id=os:linux:general:splitdns' ,
     py_modules=['ubsplitmap'] ,
     data_files=[ ('etc/unbound' , ['ub-split-map.ini.default']) ] ,
     classifiers=[

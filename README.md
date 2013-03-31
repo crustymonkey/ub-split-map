@@ -80,3 +80,9 @@ that it's in one of the following locations:
 
 As far as configuring the ub-split-map.ini file goes, read the notes in
 the default file for more info on it's config.
+
+### Full Configuration Documentation ###
+Take a look at this page for a walkthrough on getting this set up with
+Unbound:
+
+https://stuffivelearned.org/doku.php?id=os:linux:general:splitdns
