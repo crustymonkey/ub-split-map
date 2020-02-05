@@ -5,7 +5,7 @@ that will map external IPs to RFC-1918 IPs.  This would be a replacement
 for split horizon DNS that would work in a dynamic fashion.
 """
 
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
 from fnmatch import fnmatch
 import os , socket
 
@@ -91,11 +91,11 @@ def processRRSets(qstate , qname , ipMap):
     msg = DNSMessage(qstate.qinfo.qname_str , RR_TYPE_A , RR_CLASS_IN ,
         PKT_QR | PKT_RA)
     rep = qstate.return_msg.rep
-    for i in xrange(rep.an_numrrsets):
+    for i in range(rep.an_numrrsets):
         if rep.rrsets[i].rk.type_str == 'A':
             # Only want the A records
             data = rep.rrsets[i].entry.data
-            for j in xrange(data.count):
+            for j in range(data.count):
                 ip = unpackIP(data.rr_data[j])
                 if ip in ipMap:
                     # We have a match to replace
@@ -155,7 +155,7 @@ def operate(mid , event , qstate , qdata):
             processRRSets(qstate , qn , match)
             storeQueryInCache(qstate , qstate.return_msg.qinfo ,
                 qstate.return_msg.rep , 0)
-        except Exception , e:
+        except Exception as e:
             log_err('An error occurred during modification: %s' % e)
             qstate.ext_state[mid] = MODULE_ERROR
             return False
