@@ -62,7 +62,7 @@ copied it to).
     server:
         module-config: "validator python iterator"
     python:
-        python-script: "/usr/lib/python2.7/site-packages/ubsplitmap.py"
+        python-script: "/usr/lib/python3/dist-packages/ubsplitmap.py"
 
 That's all you need to add to the unbound.conf file.
 
