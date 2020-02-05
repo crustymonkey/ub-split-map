@@ -19,7 +19,7 @@ setup(name='ub-split-map' ,
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)' ,
         'Natural Language :: English' ,
         'Operating System :: OS Independent' ,
-        'Programming Language :: Python :: 2' ,
+        'Programming Language :: Python :: 3' ,
         'Topic :: Internet :: Name Service (DNS)' ,
     ]
 )
