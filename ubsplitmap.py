@@ -7,7 +7,7 @@ for split horizon DNS that would work in a dynamic fashion.
 
 from configparser import SafeConfigParser
 from fnmatch import fnmatch
-import os , socket
+import os, socket
 
 CONFIG_SEARCH = [
     '/etc/ub-split-map.ini' ,
@@ -18,14 +18,16 @@ CONFIG_SEARCH = [
 
 if 'HOME' in os.environ:
     CONFIG_SEARCH.extend([
-        os.path.join(os.environ['HOME'] , 'ub-split-map.ini') ,
-        os.path.join(os.environ['HOME'] , '/unbound/ub-split-map.ini') ,
+        os.path.join(os.environ['HOME'], 'ub-split-map.ini') ,
+        os.path.join(os.environ['HOME'], '/unbound/ub-split-map.ini') ,
     ])
 
 CONFIG_SEARCH.append('/home/jay/sandbox/ub-split-map/ub-split-map.ini')
 
+
 class Globals(object):
     conf = None
+
 
 class MyConfigParser(SafeConfigParser):
     """
@@ -46,7 +48,7 @@ class MyConfigParser(SafeConfigParser):
             return self.__dom_sections
 
         self.__dom_sections = set()
-        toSkip = set(['main' , 'maps'])
+        toSkip = set(['main', 'maps'])
 
         for s in self.sections():
             if s not in toSkip:
@@ -54,7 +56,7 @@ class MyConfigParser(SafeConfigParser):
 
         return self.__dom_sections
 
-    def qname_match(self , qname):
+    def qname_match(self, qname):
         """
         Based on the qname, returns the dictionary of matches for a
         particular query name
@@ -63,7 +65,7 @@ class MyConfigParser(SafeConfigParser):
 
         returns:dict
         """
-        if self.get('main' , 'scan_type') == 'all':
+        if self.get('main', 'scan_type') == 'all':
             # Just return the maps section if we are scanning all
             return dict(self.items('maps'))
 
@@ -74,17 +76,19 @@ class MyConfigParser(SafeConfigParser):
         # Check the qname vs all the section headings
         sects = self.get_dom_sections()
         for s in sects:
-            if fnmatch(qname , s):
+            if fnmatch(qname, s):
                 # Cache it and return the results
                 self.prev_matches[qname] = s
                 return dict(self.items(s))
 
         return None
 
+
 def get_conf():
     conf = MyConfigParser()
     conf.read(CONFIG_SEARCH)
     return conf
+
 
 def unpack_ip(strIP):
     """
@@ -93,8 +97,9 @@ def unpack_ip(strIP):
     """
     return socket.inet_ntoa(strIP[2:])
 
-def process_rr_sets(qstate , qname , ip_map):
-    msg = DNSMessage(qstate.qinfo.qname_str , RR_TYPE_A , RR_CLASS_IN ,
+
+def process_rr_sets(qstate, qname, ip_map):
+    msg = DNSMessage(qstate.qinfo.qname_str, RR_TYPE_A, RR_CLASS_IN ,
         PKT_QR | PKT_RA)
     rep = qstate.return_msg.rep
 
@@ -107,25 +112,27 @@ def process_rr_sets(qstate , qname , ip_map):
                 ip = unpack_ip(data.rr_data[j])
                 if ip in ip_map:
                     # We have a match to replace
-                    msg.answer.append('%s %d IN A %s' % (qname , 
-                        data.rr_ttl[j] , ip_map[ip]))
+                    msg.answer.append('{} {} IN A {}'.format(qname, 
+                        data.rr_ttl[j], ip_map[ip]))
                     modified = True
                 else:
-                    msg.answer.append('%s %d IN A %s' % (qname ,
-                        data.rr_ttl[j]  , ip))
+                    msg.answer.append('{} {} IN A {}'.format(qname,
+                        data.rr_ttl[j], ip))
 
     if not msg.set_return_msg(qstate):
         raise ModuleError('Can\'t set the return message')                   
 
+
 #
 # Unbound hooks
 #
-def init(mid , cfg):
+def init_standard(mid, cfg):
     """
     Called upon initialization
     """
     Globals.conf = get_conf()
     return True
+
 
 def deinit(mid):
     """
@@ -133,12 +140,14 @@ def deinit(mid):
     """
     return True
 
-def inform_super(mid , qstate , superqstate , qdata):
+
+def inform_super(mid, qstate, superqstate, qdata):
     return True
 
-def operate(mid , event , qstate , qdata):
+
+def operate(mid, event, qstate, qdata):
     conf = Globals.conf
-    if event in (MODULE_EVENT_NEW , MODULE_EVENT_PASS):
+    if event in (MODULE_EVENT_NEW, MODULE_EVENT_PASS):
         qstate.ext_state[mid] = MODULE_WAIT_MODULE
         return True
 
@@ -163,10 +172,10 @@ def operate(mid , event , qstate , qdata):
 
         try:
             # Time to modify the IPs that were returned
-            invalidateQueryInCache(qstate , qstate.return_msg.qinfo)
-            process_rr_sets(qstate , qn , match)
-            storeQueryInCache(qstate , qstate.return_msg.qinfo ,
-                qstate.return_msg.rep , 0)
+            invalidateQueryInCache(qstate, qstate.return_msg.qinfo)
+            process_rr_sets(qstate, qn, match)
+            storeQueryInCache(qstate, qstate.return_msg.qinfo ,
+                qstate.return_msg.rep, 0)
         except Exception as e:
             log_err('An error occurred during modification: %s' % e)
             qstate.ext_state[mid] = MODULE_ERROR
