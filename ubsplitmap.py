@@ -10,16 +10,16 @@ from fnmatch import fnmatch
 import os, socket
 
 CONFIG_SEARCH = [
-    '/etc/ub-split-map.ini' ,
-    '/etc/unbound/ub-split-map.ini' ,
-    '/usr/local/etc/ub-split-map.ini' ,
-    '/usr/local/etc/unbound/ub-split-map.ini' ,
+    '/etc/ub-split-map.ini',
+    '/etc/unbound/ub-split-map.ini',
+    '/usr/local/etc/ub-split-map.ini',
+    '/usr/local/etc/unbound/ub-split-map.ini',
 ]
 
 if 'HOME' in os.environ:
     CONFIG_SEARCH.extend([
-        os.path.join(os.environ['HOME'], 'ub-split-map.ini') ,
-        os.path.join(os.environ['HOME'], '/unbound/ub-split-map.ini') ,
+        os.path.join(os.environ['HOME'], 'ub-split-map.ini'),
+        os.path.join(os.environ['HOME'], '/unbound/ub-split-map.ini'),
     ])
 
 CONFIG_SEARCH.append('/home/jay/sandbox/ub-split-map/ub-split-map.ini')
@@ -99,7 +99,7 @@ def unpack_ip(strIP):
 
 
 def process_rr_sets(qstate, qname, ip_map):
-    msg = DNSMessage(qstate.qinfo.qname_str, RR_TYPE_A, RR_CLASS_IN ,
+    msg = DNSMessage(qstate.qinfo.qname_str, RR_TYPE_A, RR_CLASS_IN,
         PKT_QR | PKT_RA)
     rep = qstate.return_msg.rep
 
@@ -174,7 +174,7 @@ def operate(mid, event, qstate, qdata):
             # Time to modify the IPs that were returned
             invalidateQueryInCache(qstate, qstate.return_msg.qinfo)
             process_rr_sets(qstate, qn, match)
-            storeQueryInCache(qstate, qstate.return_msg.qinfo ,
+            storeQueryInCache(qstate, qstate.return_msg.qinfo,
                 qstate.return_msg.rep, 0)
         except Exception as e:
             log_err('An error occurred during modification: %s' % e)
