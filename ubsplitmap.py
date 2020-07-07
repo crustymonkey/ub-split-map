@@ -5,7 +5,7 @@ that will map external IPs to RFC-1918 IPs.  This would be a replacement
 for split horizon DNS that would work in a dynamic fashion.
 """
 
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 from fnmatch import fnmatch
 import os, socket
 
@@ -29,7 +29,7 @@ class Globals(object):
     conf = None
 
 
-class MyConfigParser(SafeConfigParser):
+class MyConfigParser(ConfigParser):
     """
     Subclass to make some particular lookups easier
     """
